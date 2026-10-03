@@ -1,0 +1,3 @@
+export default function Contact({ muted }: { muted: string }) {
+  return <section id="contact" className="pb-8 md:pb-[86px]"><span className="font-['DM_Mono'] text-[7px] tracking-[.12em] text-[#4dd1dc] md:text-[9px]">03 / CONTACT</span><h2 className="my-[14px] max-w-[285px] font-['Press_Start_2P'] text-[clamp(9px,3.1vw,12px)] font-normal leading-[1.85] md:my-[23px] md:max-w-none md:text-[clamp(14px,1.65vw,20px)]">LET’S BUILD SOMETHING TOGETHER.</h2><p className={`text-[9px] leading-[1.55] md:text-sm md:leading-[1.7] ${muted}`}>Your email and social links go here. Have a project in mind? I’d love to hear about it.</p></section>
+}

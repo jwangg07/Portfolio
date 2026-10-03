@@ -35,8 +35,8 @@ export const projects: PortfolioProject[] = [
     description: 'Easy-access personal sticky-note style notes stored on local storage for privacy and offline access',
     stack: 'Java, Swing, JUnit',
     color: 'bg-[#4dd1dc]',
-    imageSrc: '',
-    imageAlt: '',
+    imageSrc: '/projects/notetakingapp.png',
+    imageAlt: 'Note taking app preview',
     githubUrl: 'https://github.com/jwangg07/note-taking-app'
   },
 ]

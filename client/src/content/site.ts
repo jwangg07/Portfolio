@@ -1,0 +1,78 @@
+export const siteContent = {
+  metadata: {
+    title: 'Jerry Wang',
+    description: 'Jerry Wang is a developer turning complex problems into thoughtful digital experiences. One well-placed block at a time.',
+  },
+  header: {
+    brand: 'JERRY WANG',
+    homeLabel: 'Jerry Wang home',
+    navigationLabel: 'Main navigation',
+    navigation: [
+      { label: 'ABOUT ME', href: '#about' },
+      { label: 'PROJECTS', href: '#projects' },
+      { label: 'CONTACT', href: '#contact' },
+    ],
+  },
+  hero: {
+    eyebrow: '',
+    desktopTitleLines: ['HI, I’M JERRY. I', 'FIT BLOCKS TOGETHER.'],
+    mobileTitleLines: ['HI, I’M JERRY.', 'FIT BLOCKS', 'TOGETHER.'],
+    description: 'A full-stack developer exploring AI technologies.',
+    resumeLabel: 'RESUME',
+    resumeHref: 'https://drive.google.com/file/d/17rfqfPy_jljDpgBJo4ilXSdHvvtDOYHp/view?usp=drive_link',
+    availability: 'Currently working on: Cortex',
+  },
+  about: {
+    eyebrow: '01 / ABOUT ME',
+    titleLines: ['ABOUT ME'],
+    description: 'Hi! I’m Jerry, a second-year Computer Science student at the University of British Columbia. I enjoy building software, exploring new technologies, and turning ideas into projects that solve real problems. Outside of coding, you’ll probably find me playing Tetris or Minesweeper, or on the court playing volleyball and badminton. I’m always looking to learn something new, take on interesting challenges, and build things along the way.',
+    toolkitLabel: 'Currently Learning: ',
+    toolkit: 'Next.js, Tensorflow',
+  },
+  projects: {
+    heading: 'PROJECTS',
+    countLabel: 'PROJECTS',
+    previewPlaceholder: 'Work in Progress!',
+    previewAltSuffix: 'work in progress',
+    repositoryLabel: 'GitHub repository',
+    newTabLabel: 'opens in a new tab',
+  },
+  contact: {
+    eyebrow: '03 / CONTACT',
+    heading: 'LET’S BUILD SOMETHING TOGETHER.',
+    description: 'Your email and social links go here. Have a project in mind? I’d love to hear about it.',
+  },
+  buildMode: {
+    title: 'BUILD MODE',
+    levelLabel: 'LVL',
+    ariaLabel: 'Build Mode falling block game',
+    states: { ready: 'READY TO BUILD?', paused: 'PAUSED', gameOver: 'GAME OVER' },
+    playPrompt: 'Click or Tab here to play',
+    linesLabel: 'lines',
+    pointsLabel: 'points',
+    scoreLabel: 'SCORE',
+    lineCountLabel: 'LINES',
+    restartLabel: 'RESTART',
+    instructions: [
+      'A/D or ←/→ move · W/↑ rotate',
+      'S/↓ soft drop · Space hard drop',
+      'Focus to play · Blur or Esc to pause',
+    ],
+    touchControlsLabel: 'Touch game controls',
+    touchControls: [
+      { action: 'left', label: '←', ariaLabel: 'Move left' },
+      { action: 'rotate', label: '↻', ariaLabel: 'Rotate' },
+      { action: 'right', label: '→', ariaLabel: 'Move right' },
+      { action: 'down', label: '↓', ariaLabel: 'Soft drop' },
+      { action: 'drop', label: 'DROP', ariaLabel: 'Hard drop' },
+    ],
+  },
+  footer: {
+    copyright: '© 2026 JERRY WANG',
+    socialLinks: [
+      { label: 'GitHub', href: 'https://github.com/jwangg07', mark: 'GH' },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/jwangg07', mark: 'in' },
+      { label: 'Email', href: 'mailto:hello@wangjerry1007@gmail.com', mark: '✉' },
+    ],
+  },
+} as const

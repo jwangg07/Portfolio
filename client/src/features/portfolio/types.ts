@@ -3,6 +3,7 @@ export type PortfolioProject = {
   description: string
   stack: string
   color: string
-  shape: string[]
-  grid: string
+  imageSrc?: string
+  imageAlt?: string
+  githubUrl?: string
 }

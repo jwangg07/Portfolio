@@ -1,20 +1,57 @@
+'use client'
+
+import Image from 'next/image'
+import { useState } from 'react'
 import { projects } from '@/content/projects'
-import { PixelBlocks } from '../shared/PixelBlocks'
+import { siteContent } from '@/content/site'
+import type { PortfolioProject } from '@/features/portfolio/types'
 
-type ProjectsProps = { muted: string; panel: string }
-const shapeSizes = [
-  'h-[56px] w-[84px] md:h-[84px] md:w-[126px]',
-  'h-[58px] w-[58px] md:h-[84px] md:w-[84px]',
-  'h-[84px] w-[58px] md:h-[126px] md:w-[84px]',
-  'h-[25px] w-[100px] md:h-[38px] md:w-[150px]',
-]
+function ProjectPreview({ project }: { project: PortfolioProject }) {
+  const [failed, setFailed] = useState(false)
+  const content = siteContent.projects
+  return <div className={`relative grid aspect-video place-items-center overflow-hidden ${project.color}`}>
+    {project.imageSrc && !failed ? <Image
+      src={project.imageSrc}
+      alt={project.imageAlt || `${project.title} ${content.previewAltSuffix}`}
+      fill
+      unoptimized
+      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+      className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+      onError={() => setFailed(true)}
+    /> : <div className="flex flex-col items-center gap-3 text-[#111214]/65">
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8 fill-none stroke-current stroke-[1.5]"><rect x="3" y="3" width="18" height="18" rx="1" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 5-5 4 4 4-6 5 7" /></svg>
+      <span className="font-['DM_Mono'] text-[10px] tracking-[.12em]">{content.previewPlaceholder}</span>
+    </div>}
+  </div>
+}
 
-export default function Projects({ muted, panel }: ProjectsProps) {
+function ProjectCard({ project, index }: { project: PortfolioProject; index: number }) {
+  const contentLabels = siteContent.projects
+  const content = <>
+    <ProjectPreview key={project.imageSrc} project={project} />
+    <div className="flex flex-1 flex-col p-4">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-['Press_Start_2P'] text-[10px] font-normal leading-5">{project.title}</h3>
+        <span className="shrink-0 font-['DM_Mono'] text-[9px] text-[#91939c]">{String(index + 1).padStart(2, '0')}{project.githubUrl && <span aria-hidden="true" className="ml-2">↗</span>}</span>
+      </div>
+      <p className="mt-2 mb-4 text-[13px] leading-5 text-[#91939c]">{project.description}</p>
+      <span className="mt-auto font-['DM_Mono'] text-[8px] leading-4 tracking-[.1em] text-[#91939c]">{project.stack}</span>
+    </div>
+  </>
+  return <article className="min-w-0 bg-[#191a1e]">
+    {project.githubUrl ? <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" aria-label={`${project.title} ${contentLabels.repositoryLabel} (${contentLabels.newTabLabel})`} className="group flex h-full flex-col outline-none transition-shadow hover:ring-1 hover:ring-[#a3ec68] focus-visible:ring-2 focus-visible:ring-[#4dd1dc]">{content}</a> : <div className="flex h-full flex-col">{content}</div>}
+  </article>
+}
+
+export default function Projects() {
+  const content = siteContent.projects
   return <section id="projects" className="pb-[57px] md:pb-[92px] lg:pb-[115px]">
-    <div className="mb-[15px] flex flex-col items-start gap-2 md:mb-[25px] md:flex-row md:items-center md:justify-between"><h2 className="m-0 font-['Press_Start_2P'] text-[14px] font-normal tracking-[.05em] md:text-[20px]">PROJECTS</h2><span className={`font-['DM_Mono'] text-[6px] tracking-[.13em] md:text-[8px] ${muted}`}>04 BLOCKS / SAMPLE PROJECTS</span></div>
-    <div className="grid grid-cols-1 gap-[13px] md:grid-cols-2 md:gap-[22px]">{projects.map((project, i) => <article key={project.title} className={`min-w-0 ${panel}`}>
-      <div className={`grid aspect-[1.36/1] place-items-center md:aspect-auto md:h-[190px] lg:h-[220px] ${project.color}`}><PixelBlocks cells={project.shape} className={`gap-0.5 md:gap-[3px] ${shapeSizes[i]} ${project.grid}`} /></div>
-      <div className="min-h-0 p-[15px_13px] md:min-h-[178px] md:p-5 lg:p-[24px_25px_25px]"><div className="flex items-center justify-between gap-2"><h3 className="m-0 font-['Press_Start_2P'] text-[8px] font-normal leading-[1.5] md:text-[10px] lg:text-xs">{project.title}</h3><span className={`font-['DM_Mono'] text-[6px] md:text-[8px] ${muted}`}>0{i + 1}</span></div><p className={`my-[7px] text-[9px] leading-[1.6] md:my-[11px] md:text-[13px] lg:text-sm ${muted}`}>{project.description}</p><span className={`font-['DM_Mono'] text-[6px] tracking-[.1em] md:text-[8px] ${muted}`}>{project.stack}</span></div>
-    </article>)}</div>
+    <div className="mb-[15px] flex flex-col items-start gap-2 md:mb-[25px] md:flex-row md:items-center md:justify-between">
+      <h2 className="m-0 font-['Press_Start_2P'] text-[14px] font-normal tracking-[.05em] md:text-[20px]">{content.heading}</h2>
+      <span className="font-['DM_Mono'] text-[8px] tracking-[.13em] text-[#91939c]">{String(projects.length).padStart(2, '0')} {content.countLabel}</span>
+    </div>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {projects.map((project, index) => <ProjectCard key={project.title} project={project} index={index} />)}
+    </div>
   </section>
 }

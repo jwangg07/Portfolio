@@ -1,8 +1,42 @@
 import type { PortfolioProject } from '../features/portfolio/types'
 
+// imageSrc: public path (e.g. /projects/demo.webp) or full image URL.
+// githubUrl: repository link. Empty values show a placeholder and an unlinked card.
 export const projects: PortfolioProject[] = [
-  { title: 'Stack Sustudio', description: 'A focused workspace for ideas that deserve to ship.', stack: 'REACT / TYPESCRIPT / 2026', color: 'bg-[#4dd1dc]', shape: ['0,1', '1,0', '1,1', '1,2'], grid: 'grid-cols-3 grid-rows-2' },
-  { title: 'Common Ground', description: 'A community platform that brings good people and local ideas together.', stack: 'NEXT.JS / POSTGRESQL / 2026', color: 'bg-[#a3ec68]', shape: ['0,0', '0,1', '1,0', '1,1'], grid: 'grid-cols-2 grid-rows-2' },
-  { title: 'Loop Radio', description: 'An experimental music player built for finding your next favorite sound.', stack: 'REACT / WEB AUDIO / 2025', color: 'bg-[#ff9060]', shape: ['0,0', '1,0', '1,1', '2,0'], grid: 'grid-cols-2 grid-rows-3' },
-  { title: 'Tiny Tools', description: 'Small, fast utilities that make everyday development a little easier.', stack: 'TYPESCRIPT / NODE.JS / 2025', color: 'bg-[#7693ff]', shape: ['0,0', '0,1', '0,2', '0,3'], grid: 'grid-cols-4 grid-rows-1' },
+  {
+    title: 'Cortex',
+    description: 'AI-powered learning web app that transforms a user’s learning goals into interactive, visual knowledge trees to help users break down unfamiliar subjects into structured learning paths',
+    stack: 'React, TypeScript, Node.js, Express, Gemini, MongoDB',
+    color: 'bg-[#4dd1dc]',
+    imageSrc: '',
+    imageAlt: '',
+    githubUrl: ''
+  },
+  {
+    title: 'Findr',
+    description: 'Event discovery platform for students to easily find events near them',
+    stack: 'Next.js, Supabase, Gemini',
+    color: 'bg-[#4dd1dc]',
+    imageSrc: '/projects/findr.png',
+    imageAlt: 'Findr event discovery platform preview',
+    githubUrl: 'https://github.com/br-iscool/hellohacks2026'
+  },
+  {
+    title: 'UBCSchedules',
+    description: 'Generate all possible weekly course schedules from a set of user picked UBC courses to streamline UBC’s course selection process',
+    stack: 'React, JavaScript, Node.js, Express, Resend',
+    color: 'bg-[#4dd1dc]',
+    imageSrc: '/projects/ubcschedules.png',
+    imageAlt: 'UBC Schedules example calendar preview',
+    githubUrl: 'https://github.com/jwangg07/UBCSchedules'
+  },
+  {
+    title: 'Personal Note Taking App',
+    description: 'Easy-access personal sticky-note style notes stored on local storage for privacy and offline access',
+    stack: 'Java, Swing, JUnit',
+    color: 'bg-[#4dd1dc]',
+    imageSrc: '',
+    imageAlt: '',
+    githubUrl: 'https://github.com/jwangg07/note-taking-app'
+  },
 ]

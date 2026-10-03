@@ -1,5 +1,5 @@
 export const WIDTH = 10
-export const HEIGHT = 16
+export const HEIGHT = 12
 const SHAPES = [
   [[1, 1, 1, 1]],
   [[1, 1], [1, 1]],

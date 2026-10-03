@@ -10,7 +10,7 @@ src/
   app/                          Next.js routes, root layout, and global Tailwind entry
   components/shared/            Reusable shared UI primitives
   features/portfolio/
-    components/                  Portfolio page and interactive theme switch
+    components/                  Portfolio page composition
     data/                        Project content
     types.ts                     Portfolio types
 ```

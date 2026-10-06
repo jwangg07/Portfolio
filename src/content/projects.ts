@@ -13,6 +13,15 @@ export const projects: PortfolioProject[] = [
     githubUrl: ''
   },
   {
+    title: 'Oboxle',
+    description: 'A browser based boxing game that lets players use webcam movements to spar in real time',
+    stack: 'React, TypeScript, Node.js, Express, Gemini, MongoDB',
+    color: 'bg-[#4dd1dc]',
+    imageSrc: '/projects/oboxle.png',
+    imageAlt: 'Multiplayer view punching',
+    githubUrl: 'https://github.com/jwangg07/StormHacks2026'
+  },
+  {
     title: 'Findr',
     description: 'Event discovery platform for students to easily find events near them',
     stack: 'Next.js, Supabase, Gemini',

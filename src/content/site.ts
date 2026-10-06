@@ -34,13 +34,11 @@ export const siteContent = {
     countLabel: 'PROJECTS',
     previewPlaceholder: 'Work in Progress!',
     previewAltSuffix: 'work in progress',
-    repositoryLabel: 'GitHub repository',
-    newTabLabel: 'opens in a new tab',
   },
   contact: {
     eyebrow: '03 / CONTACT',
-    heading: 'LET’S BUILD SOMETHING TOGETHER.',
-    description: 'Your email and social links go here. Have a project in mind? I’d love to hear about it.',
+    heading: '',
+    description: '',
   },
   buildMode: {
     title: 'BUILD MODE',
@@ -70,9 +68,9 @@ export const siteContent = {
   footer: {
     copyright: '© 2026 JERRY WANG',
     socialLinks: [
-      { label: 'GitHub', href: 'https://github.com/jwangg07', mark: 'GH' },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/jwangg07', mark: 'in' },
-      { label: 'Email', href: 'mailto:hello@wangjerry1007@gmail.com', mark: '✉' },
+      { label: 'GitHub', href: 'https://github.com/jwangg07', display: 'github.com/jwangg07' },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/jwangg07', display: 'linkedin.com/in/jwangg07' },
+      { label: 'Email', href: 'mailto:wangjerry1007@gmail.com', display: 'wangjerry1007@gmail.com' },
     ],
   },
 } as const

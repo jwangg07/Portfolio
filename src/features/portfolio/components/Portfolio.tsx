@@ -3,6 +3,7 @@ import BuildMode from '@/components/buildMode/BuildMode'
 import Contact from '@/components/contactSection/Contact'
 import Projects from '@/components/projectsSection/Projects'
 import { PixelMark } from '@/components/shared/PixelBlocks'
+import SocialIcon from '@/components/shared/SocialIcon'
 import { siteContent } from '@/content/site'
 
 function TitleLines({ lines }: { lines: readonly string[] }) {
@@ -22,7 +23,7 @@ export default function Portfolio() {
       id="top"
       className="min-h-screen scroll-smooth bg-[#101112] px-[13px] font-['DM_Sans'] text-[#e8e8e5] md:px-[34px] lg:px-[max(26px,calc((100vw-1128px)/2))]"
     >
-      <header className="grid min-h-[57px] grid-cols-[1fr_auto] grid-rows-[27px_28px] items-center border-b border-[#2a2b2f] md:flex md:h-[82px] md:gap-[31px]">
+      <header className="sticky top-0 z-50 grid min-h-[57px] grid-cols-[1fr_auto] grid-rows-[27px_28px] items-center border-b border-[#2a2b2f] bg-[#101112] md:flex md:h-[82px] md:gap-[31px]">
         <a
           href="#top"
           aria-label={header.homeLabel}
@@ -86,16 +87,16 @@ export default function Portfolio() {
       <footer className="-mx-[13px] flex min-h-[46px] items-center justify-between border-t border-[#2a2b2f] px-[13px] font-['DM_Mono'] text-[6px] tracking-[.1em] text-[#91939c] md:mx-0 md:min-h-[76px] md:px-0 md:text-[8px]">
         <span>{footer.copyright}</span>
         <div className="flex gap-[6px] md:gap-[11px]">
-          {footer.socialLinks.map(({ label, href, mark }) => (
+          {footer.socialLinks.map(({ label, href }) => (
             <a
               key={label}
               href={href}
-              target="_blank"
-              rel="noopener noreferrer"
+              target={label === 'Email' ? undefined : '_blank'}
+              rel={label === 'Email' ? undefined : 'noopener noreferrer'}
               aria-label={label}
               className="grid h-[25px] w-[25px] place-items-center border border-[#2a2b2f] font-sans text-[12px] text-[#e8e8e5] transition hover:border-[#4dd1dc] hover:text-[#4dd1dc] md:h-[43px] md:w-[43px]"
             >
-              {mark}
+              <SocialIcon name={label} className="h-[14px] w-[14px] md:h-[19px] md:w-[19px]" />
             </a>
           ))}
         </div>

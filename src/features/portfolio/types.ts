@@ -5,5 +5,7 @@ export type PortfolioProject = {
   color: string
   imageSrc?: string
   imageAlt?: string
-  githubUrl?: string
+  githubUrl: string
+  devpostUrl: string
+  projectUrl: string
 }

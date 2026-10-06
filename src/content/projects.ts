@@ -1,7 +1,8 @@
 import type { PortfolioProject } from '../features/portfolio/types'
 
 // imageSrc: public path (e.g. /projects/demo.webp) or full image URL.
-// githubUrl: repository link. Empty values show a placeholder and an unlinked card.
+// githubUrl and devpostUrl: buttons below the description; empty means no button.
+// projectUrl: destination when clicking the card; empty means the card is not clickable.
 export const projects: PortfolioProject[] = [
   {
     title: 'Cortex',
@@ -10,7 +11,9 @@ export const projects: PortfolioProject[] = [
     color: 'bg-[#4dd1dc]',
     imageSrc: '',
     imageAlt: '',
-    githubUrl: ''
+    githubUrl: '',
+    devpostUrl: '',
+    projectUrl: ''
   },
   {
     title: 'Oboxle',
@@ -19,7 +22,9 @@ export const projects: PortfolioProject[] = [
     color: 'bg-[#4dd1dc]',
     imageSrc: '/projects/oboxle.png',
     imageAlt: 'Multiplayer view punching',
-    githubUrl: 'https://github.com/jwangg07/StormHacks2026'
+    githubUrl: 'https://github.com/jwangg07/StormHacks2026',
+    devpostUrl: 'https://devpost.com/software/oboxle',
+    projectUrl: ''
   },
   {
     title: 'Findr',
@@ -28,7 +33,9 @@ export const projects: PortfolioProject[] = [
     color: 'bg-[#4dd1dc]',
     imageSrc: '/projects/findr.png',
     imageAlt: 'Findr event discovery platform preview',
-    githubUrl: 'https://github.com/br-iscool/hellohacks2026'
+    githubUrl: 'https://github.com/br-iscool/hellohacks2026',
+    devpostUrl: 'https://devpost.com/software/findr-ebl63c',
+    projectUrl: ''
   },
   {
     title: 'UBCSchedules',
@@ -37,7 +44,9 @@ export const projects: PortfolioProject[] = [
     color: 'bg-[#4dd1dc]',
     imageSrc: '/projects/ubcschedules.png',
     imageAlt: 'UBC Schedules example calendar preview',
-    githubUrl: 'https://github.com/jwangg07/UBCSchedules'
+    githubUrl: 'https://github.com/jwangg07/UBCSchedules',
+    devpostUrl: '',
+    projectUrl: 'https://ubcschedules.vercel.app/'
   },
   {
     title: 'Personal Note Taking App',
@@ -46,6 +55,8 @@ export const projects: PortfolioProject[] = [
     color: 'bg-[#4dd1dc]',
     imageSrc: '/projects/notetakingapp.png',
     imageAlt: 'Note taking app preview',
-    githubUrl: 'https://github.com/jwangg07/note-taking-app'
+    githubUrl: 'https://github.com/jwangg07/note-taking-app',
+    devpostUrl: '',
+    projectUrl: ''
   },
 ]

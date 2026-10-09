@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useId, useReducer, useRef, useState } from 'react'
+import { useEffect, useId, useReducer, useRef, useState, type FormEvent } from 'react'
 import { siteContent } from '@/content/site'
 import { createGame, gameReducer, landing, WIDTH } from './game'
 import type { Action, Piece } from './game'
 
 const colors = ['bg-[#151619]', 'bg-[#4dd1dc]', 'bg-[#ff9060]', 'bg-[#a3ec68]', 'bg-[#a3ec68]', 'bg-[#ed799c]', 'bg-[#7693ff]', 'bg-[#bd92ef]']
 const keys: Record<string, Action['type']> = { a: 'left', ArrowLeft: 'left', d: 'right', ArrowRight: 'right', s: 'down', ArrowDown: 'down', w: 'rotate', ArrowUp: 'rotate', ' ': 'drop' }
+type ScoreEntry = { display_name: string; score: number }
 
 function visitPieceCells(piece: Piece, visit: (x: number, y: number) => void) {
   piece.shape.forEach((row, deltaY) => {
@@ -22,6 +23,11 @@ export default function BuildMode() {
   const [focused, setFocused] = useState(false)
   const [started, setStarted] = useState(false)
   const [visible, setVisible] = useState(true)
+  const [scores, setScores] = useState<ScoreEntry[]>([])
+  const [leaderboardError, setLeaderboardError] = useState('')
+  const [scoreFeedback, setScoreFeedback] = useState('')
+  const [savingScore, setSavingScore] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const boardRef = useRef<HTMLDivElement>(null)
   const instructions = useId()
   const active = focused && visible && !game.over
@@ -47,6 +53,45 @@ export default function BuildMode() {
     return () => window.clearInterval(timer)
   }, [active, level])
 
+  async function loadScores() {
+    try {
+      const response = await fetch('/api/leaderboard', { cache: 'no-store' })
+      if (!response.ok) throw new Error('Unavailable')
+      const result = await response.json()
+      setScores(result.scores)
+      setLeaderboardError('')
+    } catch {
+      setLeaderboardError('Leaderboard unavailable until Supabase is configured.')
+    }
+  }
+
+  useEffect(() => { void loadScores() }, [])
+
+  async function submitScore(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!game.over || submitted) return
+    const form = event.currentTarget
+    const data = Object.fromEntries(new FormData(form))
+    setSavingScore(true)
+    setScoreFeedback('')
+    try {
+      const response = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, score: game.score }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error)
+      setSubmitted(true)
+      setScoreFeedback('Score saved. Only your highest score appears.')
+      void loadScores()
+    } catch (error) {
+      setScoreFeedback(error instanceof Error ? error.message : 'Score could not be saved.')
+    } finally {
+      setSavingScore(false)
+    }
+  }
+
   const cells = game.board.map((row) => [...row])
   const ghost = new Set<number>()
   if (!game.over) {
@@ -56,6 +101,8 @@ export default function BuildMode() {
 
   const handleRestart = () => {
     dispatch({ type: 'reset', seed: Date.now() })
+    setSubmitted(false)
+    setScoreFeedback('')
     boardRef.current?.focus({ preventScroll: true })
   }
   const status = game.over ? content.states.gameOver : started ? content.states.paused : content.states.ready
@@ -116,6 +163,28 @@ export default function BuildMode() {
           <span key={line}>{line}{index < content.instructions.length - 1 && <br />}</span>
         ))}
       </p>
+      {game.over && (
+        <form onSubmit={submitScore} className="mt-4 grid gap-2 border-t border-[#2a2b2f] pt-4 font-['DM_Mono'] text-[10px]">
+          <strong className="text-[#a3ec68]">SHARE YOUR SCORE</strong>
+          <p className="text-[#91939c]">Add your name and email to save this score. Scores without an email are not stored.</p>
+          <input required name="name" maxLength={40} placeholder="Name" aria-label="Leaderboard name" disabled={submitted} className="border border-[#2a2b2f] bg-[#101112] p-2 outline-none focus:border-[#4dd1dc]" />
+          <input required type="email" name="email" maxLength={254} placeholder="Email" aria-label="Leaderboard email" disabled={submitted} className="border border-[#2a2b2f] bg-[#101112] p-2 outline-none focus:border-[#4dd1dc]" />
+          <button disabled={savingScore || submitted} className="cursor-pointer bg-[#a3ec68] p-2 text-[#101112] disabled:cursor-default disabled:opacity-60">{savingScore ? 'SAVING...' : submitted ? 'SAVED' : 'SUBMIT SCORE'}</button>
+          <p role="status" aria-live="polite" className="text-[#4dd1dc]">{scoreFeedback}</p>
+        </form>
+      )}
+      <section aria-label="Tetris leaderboard" className="mt-4 border-t border-[#2a2b2f] pt-4 font-['DM_Mono'] text-[10px]">
+        <h3 className="mb-2 text-[#a3ec68]">TOP SCORES</h3>
+        {leaderboardError && <p className="text-[#91939c]">{leaderboardError}</p>}
+        {!leaderboardError && scores.length === 0 && <p className="text-[#91939c]">No scores yet. Be the first!</p>}
+        <ol className="grid gap-1">
+          {scores.map((entry, index) => (
+            <li key={`${entry.display_name}-${index}`} className="flex justify-between gap-2 border-b border-[#2a2b2f] py-1">
+              <span className="truncate">{index + 1}. {entry.display_name}</span><span>{entry.score}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
       <div className="mt-2 flex justify-center gap-2 md:hidden" aria-label={content.touchControlsLabel}>
         {content.touchControls.map(({ action, label, ariaLabel }) => (
           <button

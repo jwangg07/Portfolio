@@ -4,11 +4,10 @@ import { useEffect, useId, useReducer, useRef, useState, type FormEvent } from '
 import { siteContent } from '@/content/site'
 import { createGame, gameReducer, landing, WIDTH } from './game'
 import type { Action, Piece } from './game'
+import { getScores, invalidateScores, type ScoreEntry } from './leaderboard'
 
 const colors = ['bg-[#151619]', 'bg-[#4dd1dc]', 'bg-[#ff9060]', 'bg-[#a3ec68]', 'bg-[#a3ec68]', 'bg-[#ed799c]', 'bg-[#7693ff]', 'bg-[#bd92ef]']
 const keys: Record<string, Action['type']> = { a: 'left', ArrowLeft: 'left', d: 'right', ArrowRight: 'right', s: 'down', ArrowDown: 'down', w: 'rotate', ArrowUp: 'rotate', ' ': 'drop' }
-type ScoreEntry = { display_name: string; score: number }
-
 function visitPieceCells(piece: Piece, visit: (x: number, y: number) => void) {
   piece.shape.forEach((row, deltaY) => {
     row.forEach((cell, deltaX) => {
@@ -29,6 +28,7 @@ export default function BuildMode() {
   const [savingScore, setSavingScore] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const boardRef = useRef<HTMLDivElement>(null)
+  const scoreLoadId = useRef(0)
   const instructions = useId()
   const active = focused && visible && !game.over
   const level = 1 + Math.floor(game.lines / 10)
@@ -53,19 +53,20 @@ export default function BuildMode() {
     return () => window.clearInterval(timer)
   }, [active, level])
 
-  async function loadScores() {
-    try {
-      const response = await fetch('/api/leaderboard', { cache: 'no-store' })
-      if (!response.ok) throw new Error('Unavailable')
-      const result = await response.json()
-      setScores(result.scores)
+  useEffect(() => {
+    let cancelled = false
+    const loadId = ++scoreLoadId.current
+    void getScores().then((result) => {
+      if (cancelled || loadId !== scoreLoadId.current) return
+      setScores(result)
       setLeaderboardError('')
-    } catch {
-      setLeaderboardError('Leaderboard unavailable until Supabase is configured.')
-    }
-  }
-
-  useEffect(() => { void loadScores() }, [])
+    }).catch(() => {
+      if (!cancelled && loadId === scoreLoadId.current) {
+        setLeaderboardError('Leaderboard unavailable until Supabase is configured.')
+      }
+    })
+    return () => { cancelled = true }
+  }, [])
 
   async function submitScore(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -84,7 +85,17 @@ export default function BuildMode() {
       if (!response.ok) throw new Error(result.error)
       setSubmitted(true)
       setScoreFeedback('Score saved. Only your highest score appears.')
-      void loadScores()
+      invalidateScores()
+      const loadId = ++scoreLoadId.current
+      try {
+        const latest = await getScores()
+        if (loadId === scoreLoadId.current) {
+          setScores(latest)
+          setLeaderboardError('')
+        }
+      } catch {
+        if (loadId === scoreLoadId.current) setLeaderboardError('Leaderboard could not be refreshed.')
+      }
     } catch (error) {
       setScoreFeedback(error instanceof Error ? error.message : 'Score could not be saved.')
     } finally {

@@ -48,7 +48,7 @@ function ProjectCard({ project, index }: ProjectCardProps) {
   ].filter((link): link is { label: string; href: string } => Boolean(link.href))
 
   return (
-    <article className={`relative flex min-w-0 flex-col bg-[#191a1e] ${project.projectUrl ? 'group transition-shadow hover:ring-1 hover:ring-[#a3ec68] focus-within:ring-2 focus-within:ring-[#4dd1dc]' : ''}`}>
+    <article className={`relative z-0 flex min-w-0 flex-col bg-[#191a1e] ${project.projectUrl ? 'group transition-shadow hover:ring-1 hover:ring-[#a3ec68] focus-within:ring-2 focus-within:ring-[#4dd1dc]' : ''}`}>
       <ProjectPreview project={project} />
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
@@ -99,7 +99,7 @@ export default function Projects() {
   const content = siteContent.projects
 
   return (
-    <section id="projects" className="scroll-mt-[72px] pb-[57px] md:scroll-mt-[96px] md:pb-[92px] lg:pb-[115px]">
+    <section id="projects" className="relative z-0 scroll-mt-[72px] pb-[57px] md:scroll-mt-[96px] md:pb-[92px] lg:pb-[115px]">
       <div className="mb-[15px] flex flex-col items-start gap-2 md:mb-[25px] md:flex-row md:items-center md:justify-between">
         <h2 className="m-0 font-['Press_Start_2P'] text-[14px] font-normal tracking-[.05em] md:text-[20px]">
           {content.heading}

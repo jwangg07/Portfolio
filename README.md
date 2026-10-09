@@ -39,6 +39,17 @@ Contact messages are limited to three submissions per rolling hour per IP. The l
 
 ## Production
 
+Project screenshots are precompressed WebP files with content hashes in their URLs.
+They are cached in the browser for one year and do not use Vercel Image Optimization.
+To replace a screenshot, update its original PNG in `assets/projects/` and run
+`npm run images:optimize`. Commit the generated images and `src/content/project-images.ts`
+together. New image contents produce a new URL, so visitors receive the updated image.
+
+The public leaderboard is cached for five minutes in browser memory and session storage.
+Reloading the same tab within that time reuses the result without an API request.
+Submitting a score clears the cache and fetches the latest leaderboard immediately.
+Other players' scores may take up to five minutes to appear on a subsequent page load.
+
 ```sh
 npm run build
 npm run start

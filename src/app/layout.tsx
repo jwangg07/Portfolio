@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { siteContent } from '@/content/site'
 import './globals.css'
 
@@ -15,6 +17,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
     </head>
-    <body>{children}</body>
+    <body>
+      {children}
+      <Analytics />
+      <SpeedInsights />
+    </body>
   </html>
 }

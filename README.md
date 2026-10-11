@@ -39,6 +39,10 @@ Contact messages are limited to three submissions per rolling hour per IP. The l
 
 ## Production
 
+Vercel Web Analytics and Speed Insights are included in the root layout. Enable
+both features for the `portfolio` project in the Vercel dashboard, then deploy
+the updated app to start collecting page views and performance data.
+
 Project screenshots are precompressed WebP files with content hashes in their URLs.
 They are cached in the browser for one year and do not use Vercel Image Optimization.
 To replace a screenshot, update its original PNG in `assets/projects/` and run

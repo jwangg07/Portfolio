@@ -3,5 +3,6 @@ export const projectImages = {
   "oboxle": "/projects/optimized/oboxle.057b41791a22.webp",
   "findr": "/projects/optimized/findr.56cf0d928a14.webp",
   "ubcschedules": "/projects/optimized/ubcschedules.5e420c602bbf.webp",
-  "notetakingapp": "/projects/optimized/notetakingapp.f35fb2bd17d3.webp"
+  "notetakingapp": "/projects/optimized/notetakingapp.f35fb2bd17d3.webp",
+  "mailbuds": "/projects/optimized/mailbuds.b73dfe3d577b.webp"
 } as const

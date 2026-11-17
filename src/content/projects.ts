@@ -23,14 +23,15 @@ export const projects: PortfolioProject[] = [
     description: 'Helps friends and family stay connected across distances by turning their voice and text updates into shared AI-generated newspapers, with an interactive 3D globe and email delivery',
     stack: 'React, TypeScript, Three.js, Python, FastAPI, Supabase, Gemini, Resend',
     color: 'bg-[#4dd1dc]',
-    imageSrc: '',
-    imageAlt: '',
+    imageSrc: projectImages.mailbuds,
+    imageAlt: 'MailBuds app preview',
     githubUrl: 'https://github.com/isabelleezhan/mailbuds',
     devpostUrl: 'https://devpost.com/software/mailbuds',
     projectUrl: 'https://whydidmyfriendsleaveme.vercel.app/'
   },
   {
     title: 'Oboxle',
+    date: 'October 2026',
     description: 'A browser based boxing game that lets players use webcam movements to spar in real time',
     stack: 'React, TypeScript, Node.js, Express, Gemini, MongoDB',
     color: 'bg-[#4dd1dc]',
@@ -42,6 +43,7 @@ export const projects: PortfolioProject[] = [
   },
   {
     title: 'Findr',
+    date: 'September 2026',
     description: 'Event discovery platform for students to easily find events near them',
     stack: 'Next.js, Supabase, Gemini',
     color: 'bg-[#4dd1dc]',
@@ -53,6 +55,7 @@ export const projects: PortfolioProject[] = [
   },
   {
     title: 'UBCSchedules',
+    date: 'July–August 2026',
     description: 'Generate all possible weekly course schedules from a set of user picked UBC courses to streamline UBC’s course selection process',
     stack: 'React, JavaScript, Node.js, Express, Resend',
     color: 'bg-[#4dd1dc]',
@@ -64,6 +67,7 @@ export const projects: PortfolioProject[] = [
   },
   {
     title: 'Personal Note Taking App',
+    date: 'January 2026 – April 2026',
     description: 'Easy-access personal sticky-note style notes stored on local storage for privacy and offline access',
     stack: 'Java, Swing, JUnit',
     color: 'bg-[#4dd1dc]',

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import sharp from 'sharp'
 
-const names = ['oboxle', 'findr', 'ubcschedules', 'notetakingapp']
+const names = ['oboxle', 'findr', 'ubcschedules', 'notetakingapp', 'mailbuds']
 const output = new URL('../public/projects/optimized/', import.meta.url)
 await mkdir(output, { recursive: true })
 const images = {}

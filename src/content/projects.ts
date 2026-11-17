@@ -6,13 +6,26 @@ import { projectImages } from './project-images'
 // projectUrl: destination when clicking the card; empty means the card is not clickable.
 export const projects: PortfolioProject[] = [
   {
-    title: 'Cortex',
-    description: 'AI-powered learning web app that transforms a user’s learning goals into interactive, visual knowledge trees to help users break down unfamiliar subjects into structured learning paths',
-    stack: 'React, TypeScript, Node.js, Express, Gemini, MongoDB',
+    title: 'MailBuds',
+    date: 'November 2026',
+    description: 'Helps friends and family stay connected across distances by turning their voice and text updates into shared AI-generated newspapers, with an interactive 3D globe and email delivery',
+    stack: 'React, TypeScript, Three.js, Python, FastAPI, Supabase, Gemini, Resend',
     color: 'bg-[#4dd1dc]',
     imageSrc: '',
     imageAlt: '',
-    githubUrl: '',
+    githubUrl: 'https://github.com/isabelleezhan/mailbuds',
+    devpostUrl: 'https://devpost.com/software/mailbuds',
+    projectUrl: 'https://whydidmyfriendsleaveme.vercel.app/'
+  },
+  {
+    title: 'Mini Mailroom',
+    date: 'November 2026 – Present',
+    description: 'A Gmail client growing into a cozy pixel-art mailroom, with Google sign-in, a paginated inbox, plain-text message reading, and email composition',
+    stack: 'React, TypeScript, Python, FastAPI, Gmail API, AWS Lambda, DynamoDB',
+    color: 'bg-[#4dd1dc]',
+    imageSrc: '',
+    imageAlt: '',
+    githubUrl: 'https://github.com/jwangg07/Mini-Mailroom',
     devpostUrl: '',
     projectUrl: ''
   },

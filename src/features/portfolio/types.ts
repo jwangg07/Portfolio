@@ -1,5 +1,6 @@
 export type PortfolioProject = {
   title: string
+  date?: string
   description: string
   stack: string
   color: string

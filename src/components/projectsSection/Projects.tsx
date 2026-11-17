@@ -59,6 +59,11 @@ function ProjectCard({ project, index }: ProjectCardProps) {
             {String(index + 1).padStart(2, '0')}
           </span>
         </div>
+        {project.date && (
+          <p className="mt-2 font-['DM_Mono'] text-[9px] leading-4 text-[#91939c]">
+            {project.date}
+          </p>
+        )}
         <p className="mt-2 mb-4 text-[13px] leading-5 text-[#91939c]">
           {project.description}
         </p>

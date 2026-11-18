@@ -14,10 +14,11 @@ export type Piece = { shape: number[][]; x: number; y: number; color: number }
 export type Game = {
   board: number[][]; piece: Piece; bag: number[]; seed: number
   score: number; lines: number; over: boolean
+  lastLock: { id: number; rows: number[]; impact?: Piece } | null
 }
 export type Action = { type: 'left' | 'right' | 'down' | 'tick' | 'rotate' | 'drop' } | { type: 'reset'; seed: number }
 
-function nextPiece(game: Game): Game {
+function drawPiece(game: Pick<Game, 'bag' | 'seed'>) {
   const bag = [...game.bag]
   let seed = game.seed
   if (!bag.length) {
@@ -31,11 +32,24 @@ function nextPiece(game: Game): Game {
   const kind = bag.pop()!
   const shape = SHAPES[kind].map(row => [...row])
   const piece = { shape, x: Math.floor((WIDTH - shape[0].length) / 2), y: 0, color: kind + 1 }
-  return { ...game, bag, seed, piece, over: !fits(game.board, piece) }
+  return { bag, seed, piece }
+}
+
+function nextPiece(game: Game): Game {
+  const drawn = drawPiece(game)
+  return { ...game, ...drawn, over: !fits(game.board, drawn.piece) }
+}
+
+export function upcomingPiece(game: Pick<Game, 'bag' | 'seed'>): Piece {
+  return drawPiece(game).piece
 }
 
 export function createGame(seed = 1): Game {
-  return nextPiece({ board: Array.from({ length: HEIGHT }, () => Array(WIDTH).fill(0)), piece: { shape: [], x: 0, y: 0, color: 1 }, bag: [], seed, score: 0, lines: 0, over: false })
+  return nextPiece({
+    board: Array.from({ length: HEIGHT }, () => Array(WIDTH).fill(0)),
+    piece: { shape: [], x: 0, y: 0, color: 1 },
+    bag: [], seed, score: 0, lines: 0, over: false, lastLock: null,
+  })
 }
 
 export function fits(board: number[][], piece: Piece): boolean {
@@ -51,17 +65,23 @@ export function landing(game: Game): Piece {
   return piece
 }
 
-function lock(game: Game): Game {
+function lock(game: Game, hardDrop = false): Game {
   const board = game.board.map(row => [...row])
   game.piece.shape.forEach((row, dy) => row.forEach((cell, dx) => {
     if (cell) board[game.piece.y + dy][game.piece.x + dx] = game.piece.color
   }))
-  const remaining = board.filter(row => row.some(cell => !cell))
-  const cleared = HEIGHT - remaining.length
+  const rows: number[] = []
+  const remaining = board.filter((row, index) => {
+    if (row.some(cell => !cell)) return true
+    rows.push(index)
+    return false
+  })
+  const cleared = rows.length
   return nextPiece({ ...game,
     board: [...Array.from({ length: cleared }, () => Array(WIDTH).fill(0)), ...remaining],
     lines: game.lines + cleared,
     score: game.score + [0, 100, 300, 500, 800][cleared] * (1 + Math.floor(game.lines / 10)),
+    lastLock: { id: (game.lastLock?.id ?? 0) + 1, rows, impact: hardDrop ? game.piece : undefined },
   })
 }
 
@@ -70,7 +90,7 @@ export function gameReducer(game: Game, action: Action): Game {
   if (game.over) return game
   if (action.type === 'drop') {
     const piece = landing(game)
-    return lock({ ...game, piece, score: game.score + (piece.y - game.piece.y) * 2 })
+    return lock({ ...game, piece, score: game.score + (piece.y - game.piece.y) * 2 }, true)
   }
   if (action.type === 'rotate') {
     const shape = game.piece.shape[0].map((_, x) => game.piece.shape.map(row => row[x]).reverse())

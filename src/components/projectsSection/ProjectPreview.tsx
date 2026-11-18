@@ -15,7 +15,7 @@ export default function ProjectPreview({ project }: { project: PortfolioProject 
           alt={project.imageAlt || `${project.title} preview`}
           fill
           unoptimized
-          sizes="(min-width: 1184px) 550px, (min-width: 640px) 48vw, 100vw"
+          sizes="(min-width: 1192px) 358px, (min-width: 1001px) 32vw, (min-width: 640px) 48vw, 100vw"
           className="project-image"
           onError={() => setFailed(true)}
         />

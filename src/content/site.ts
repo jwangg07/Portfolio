@@ -1,6 +1,6 @@
 export const siteContent = {
   metadata: {
-    title: 'Jerry Wang · Full-Stack Developer',
+    title: 'Jerry Wang',
     description: 'Jerry Wang is a full-stack developer and UBC computer science student. Explore his projects and play a round of Build Mode.',
   },
   header: {

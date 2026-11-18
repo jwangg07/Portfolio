@@ -24,7 +24,7 @@ const dmMono = localFont({
 export const metadata: Metadata = {
   title: siteContent.metadata.title,
   description: siteContent.metadata.description,
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: { url: '/favicon.svg?v=3', type: 'image/svg+xml' } },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -367,7 +367,7 @@ button.button {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 
@@ -717,7 +717,7 @@ button.button {
 
 .footer-inner {
   display: flex;
-  min-height: 70px;
+  min-height: 78px;
   align-items: center;
 }
 
@@ -732,11 +732,13 @@ button.button {
 .back-to-top {
   position: fixed;
   z-index: 5;
-  right: max(18px, calc((100% - 1120px) / 2), env(safe-area-inset-right));
-  bottom: max(14px, env(safe-area-inset-bottom));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
   visibility: hidden;
   opacity: 0;
-  translate: 0 14px;
+  translate: -50% 14px;
+  border-radius: 999px;
+  padding-inline: 20px;
   box-shadow: 0 3px 0 #9b6072;
   font-family: var(--font-interface), Arial, sans-serif;
   transition: opacity 180ms, translate 180ms, visibility 180ms, background-color 150ms;
@@ -745,7 +747,7 @@ button.button {
 .back-to-top[data-visible="true"] {
   visibility: visible;
   opacity: 1;
-  translate: 0;
+  translate: -50% 0;
 }
 
 @media (max-width: 1000px) {
@@ -756,6 +758,10 @@ button.button {
 
   .hero-copy {
     margin-top: 25px;
+  }
+
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -825,6 +831,12 @@ button.button {
     width: min(78vw, 280px);
     grid-row: 2;
     margin-inline-start: 7px;
+  }
+
+  .footer-inner {
+    min-height: calc(110px + env(safe-area-inset-bottom, 0px));
+    align-items: flex-start;
+    padding-top: 16px;
   }
 }
 

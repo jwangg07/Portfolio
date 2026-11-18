@@ -8,21 +8,19 @@ export const siteContent = {
     homeLabel: 'Jerry Wang home',
     navigationLabel: 'Main navigation',
     navigation: [
-      { label: 'Work', href: '#projects' },
       { label: 'About', href: '#about' },
+      { label: 'Projects', href: '#projects' },
       { label: 'Contact', href: '#contact' },
     ],
   },
   hero: {
-    role: 'Full-stack developer',
     greeting: 'Hi, I’m Jerry.',
     headline: 'I fit blocks together.',
-    description: 'I study computer science at UBC, build software to solve everyday problems, and explore what’s possible with AI.',
+    description: 'Second year computer science student at UBC, interested in building software to automate everyday tasks, and exploring whats possible with AI.',
     resumeHref: 'https://drive.google.com/file/d/17rfqfPy_jljDpgBJo4ilXSdHvvtDOYHp/view?usp=drive_link',
   },
   about: {
     description: 'I’m a second-year Computer Science student at the University of British Columbia. I enjoy building software, exploring new technologies, and turning ideas into projects that solve real problems. Outside of coding, you’ll probably find me playing Tetris or Minesweeper, or on the court playing volleyball and badminton.',
-    toolkit: 'Next.js, TensorFlow',
   },
   contact: {
     heading: 'Let’s get in touch',

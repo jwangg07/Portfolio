@@ -16,16 +16,16 @@ export type Game = {
   score: number; lines: number; over: boolean
   lastLock: { id: number; rows: number[]; impact?: Piece } | null
 }
-export type Action = { type: 'left' | 'right' | 'down' | 'tick' | 'rotate' | 'drop' } | { type: 'reset'; seed: number }
+export type Action = { type: 'left' | 'right' | 'down' | 'tick' | 'rotate' | 'rotateBack' | 'drop' } | { type: 'reset'; seed: number }
 
 function drawPiece(game: Pick<Game, 'bag' | 'seed'>) {
   const bag = [...game.bag]
   let seed = game.seed
   if (!bag.length) {
-    bag.push(0, 1, 2, 3, 4, 5, 6)
+    bag.push(...SHAPES.keys())
     for (let i = bag.length - 1; i > 0; i--) {
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
-      const j = seed % (i + 1)
+      const j = Math.floor((seed / 0x1_0000_0000) * (i + 1))
       ;[bag[i], bag[j]] = [bag[j], bag[i]]
     }
   }
@@ -92,8 +92,9 @@ export function gameReducer(game: Game, action: Action): Game {
     const piece = landing(game)
     return lock({ ...game, piece, score: game.score + (piece.y - game.piece.y) * 2 }, true)
   }
-  if (action.type === 'rotate') {
-    const shape = game.piece.shape[0].map((_, x) => game.piece.shape.map(row => row[x]).reverse())
+  if (action.type === 'rotate' || action.type === 'rotateBack') {
+    const columns = game.piece.shape[0].map((_, x) => game.piece.shape.map((row) => row[x]))
+    const shape = action.type === 'rotate' ? columns.map((column) => column.reverse()) : columns.reverse()
     for (const offset of [0, -1, 1, -2, 2]) {
       const piece = { ...game.piece, shape, x: game.piece.x + offset }
       if (fits(game.board, piece)) return { ...game, piece }

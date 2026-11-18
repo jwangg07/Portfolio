@@ -52,10 +52,7 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
 export default function Projects() {
   return (
     <section id="projects" className="page-width projects-section" aria-labelledby="projects-title">
-      <div className="section-heading">
-        <h2 id="projects-title" className="section-title">Selected work<span aria-hidden="true">.</span></h2>
-        <p className="eyebrow">{projects.length} projects</p>
-      </div>
+      <h2 id="projects-title" className="section-title">Projects</h2>
       <div className="project-grid">
         {projects.map((project) => <ProjectCard key={project.title} project={project} />)}
       </div>

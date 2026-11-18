@@ -9,7 +9,16 @@ import './BuildMode.css'
 
 const keys: Partial<Record<string, Exclude<Action['type'], 'reset' | 'tick'>>> = {
   a: 'left', ArrowLeft: 'left', d: 'right', ArrowRight: 'right',
-  s: 'down', ArrowDown: 'down', w: 'rotate', ArrowUp: 'rotate', ' ': 'drop',
+  s: 'down', ArrowDown: 'down', w: 'rotate', ArrowUp: 'rotate', z: 'rotateBack', ' ': 'drop',
+}
+
+const repeatGroups = ['horizontal', 'down'] as const
+type RepeatGroup = (typeof repeatGroups)[number]
+type HeldKeys = Partial<Record<RepeatGroup, { key: string; timer: number }>>
+
+function stopRepeat(held: HeldKeys, group: RepeatGroup) {
+  window.clearTimeout(held[group]?.timer)
+  delete held[group]
 }
 
 const idleBoard = [
@@ -109,13 +118,18 @@ export default function BuildMode() {
   const [submitted, setSubmitted] = useState(false)
   const boardRef = useRef<HTMLDivElement>(null)
   const pauseRef = useRef<HTMLButtonElement>(null)
+  const heldKeys = useRef<HeldKeys>({})
   const instructions = useId()
   const active = running && !game.over
   const level = 1 + Math.floor(game.lines / 10)
 
   useEffect(() => {
     if (!active) return
-    const pause = () => setRunning(false)
+    const held = heldKeys.current
+    const pause = () => {
+      for (const group of repeatGroups) stopRepeat(held, group)
+      setRunning(false)
+    }
     const updateVisibility = () => { if (document.hidden) pause() }
     const interval = Math.max(120, 750 - (level - 1) * 65)
     const timer = window.setInterval(() => dispatch({ type: 'tick' }), interval)
@@ -133,15 +147,34 @@ export default function BuildMode() {
     }
   }, [active, level])
 
+  useEffect(() => {
+    if (!active) return
+    const held = heldKeys.current
+    return () => { for (const group of repeatGroups) stopRepeat(held, group) }
+  }, [active])
+
   function play(restart = false) {
-    if (restart) {
-      dispatch({ type: 'reset', seed: Date.now() })
+    if (!started || restart) {
+      dispatch({ type: 'reset', seed: crypto.getRandomValues(new Uint32Array(1))[0] })
       setSubmitted(false)
       setScoreFeedback('')
     }
     setStarted(true)
     setRunning(true)
     boardRef.current?.focus({ preventScroll: true })
+  }
+
+  function startRepeat(type: 'left' | 'right' | 'down', key: string) {
+    const held = heldKeys.current
+    const group = type === 'down' ? 'down' : 'horizontal'
+    stopRepeat(held, group)
+    const press = { key, timer: window.setTimeout(repeat, 110) }
+    held[group] = press
+
+    function repeat() {
+      dispatch({ type })
+      press.timer = window.setTimeout(repeat, type === 'down' ? 35 : 32)
+    }
   }
 
   async function submitScore(event: FormEvent<HTMLFormElement>) {
@@ -204,6 +237,12 @@ export default function BuildMode() {
             aria-label={content.ariaLabel}
             aria-describedby={instructions}
             onPointerDown={() => { if (active) boardRef.current?.focus({ preventScroll: true }) }}
+            onBlur={() => { for (const group of repeatGroups) stopRepeat(heldKeys.current, group) }}
+            onKeyUp={(event) => {
+              for (const group of repeatGroups) {
+                if (heldKeys.current[group]?.key === (event.code || event.key)) stopRepeat(heldKeys.current, group)
+              }
+            }}
             onKeyDown={(event) => {
               if (!active || event.altKey || event.ctrlKey || event.metaKey) return
               if (event.key === 'Escape' || event.key.toLowerCase() === 'p') {
@@ -215,7 +254,9 @@ export default function BuildMode() {
               const type = keys[event.key.length === 1 ? event.key.toLowerCase() : event.key]
               if (!type) return
               event.preventDefault()
-              if (!event.repeat || (type !== 'drop' && type !== 'rotate')) dispatch({ type })
+              if (event.repeat) return
+              dispatch({ type })
+              if (type === 'left' || type === 'right' || type === 'down') startRepeat(type, event.code || event.key)
             }}
           >
             <GameBoardArt game={game} started={started} />
@@ -255,12 +296,12 @@ export default function BuildMode() {
       <div id={instructions} className="game-help">
         <div className="key-legend" aria-hidden="true">
           <span><kbd>←</kbd><kbd>→</kbd> Move</span>
-          <span><kbd>↑</kbd> Rotate</span>
+          <span><kbd>↑</kbd><kbd>Z</kbd> Rotate</span>
           <span><kbd>↓</kbd> Soft drop</span>
           <span><kbd>Space</kbd> Drop</span>
           <span><kbd>Esc</kbd> Pause</span>
         </div>
-        <span className="sr-only">Left and right arrows or A and D to move. Up arrow or W to rotate. Down arrow or S to soft drop. Space to hard drop. Escape or P to pause.</span>
+        <span className="sr-only">Hold left or right arrows, A or D to move. Up arrow or W to rotate clockwise. Z to rotate counterclockwise. Hold down arrow or S to soft drop. Space to hard drop. Escape or P to pause.</span>
         <div className="touch-controls" role="group" aria-label="Touch game controls">
           {content.touchControls.map(({ action, label, ariaLabel }) => (
             <button

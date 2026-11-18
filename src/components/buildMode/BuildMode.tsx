@@ -2,77 +2,185 @@
 
 import { useEffect, useId, useReducer, useRef, useState, type FormEvent } from 'react'
 import { siteContent } from '@/content/site'
-import { createGame, gameReducer, landing, WIDTH } from './game'
-import type { Action, Piece } from './game'
+import { createGame, gameReducer, landing, upcomingPiece } from './game'
+import type { Action, Game, Piece } from './game'
 import { getScores, invalidateScores, type ScoreEntry } from './leaderboard'
+import './BuildMode.css'
 
-const colors = ['bg-[#151619]', 'bg-[#4dd1dc]', 'bg-[#ff9060]', 'bg-[#a3ec68]', 'bg-[#a3ec68]', 'bg-[#ed799c]', 'bg-[#7693ff]', 'bg-[#bd92ef]']
-const keys: Record<string, Action['type']> = { a: 'left', ArrowLeft: 'left', d: 'right', ArrowRight: 'right', s: 'down', ArrowDown: 'down', w: 'rotate', ArrowUp: 'rotate', ' ': 'drop' }
-function visitPieceCells(piece: Piece, visit: (x: number, y: number) => void) {
-  piece.shape.forEach((row, deltaY) => {
-    row.forEach((cell, deltaX) => {
-      if (cell) visit(piece.x + deltaX, piece.y + deltaY)
+const keys: Partial<Record<string, Exclude<Action['type'], 'reset' | 'tick'>>> = {
+  a: 'left', ArrowLeft: 'left', d: 'right', ArrowRight: 'right',
+  s: 'down', ArrowDown: 'down', w: 'rotate', ArrowUp: 'rotate', z: 'rotateBack', ' ': 'drop',
+}
+
+const repeatGroups = ['horizontal', 'down'] as const
+type RepeatGroup = (typeof repeatGroups)[number]
+type HeldKeys = Partial<Record<RepeatGroup, { key: string; timer: number }>>
+
+function stopRepeat(held: HeldKeys, group: RepeatGroup) {
+  window.clearTimeout(held[group]?.timer)
+  delete held[group]
+}
+
+const idleBoard = [
+  '0000000000', '0000000000', '0000000000', '0000000000', '0000000000', '0000000000',
+  '0000000000', '0000000000', '0070000006', '0777000066', '2220700446', '2221110446',
+].map((row) => Array.from(row, Number))
+
+function pieceCells(piece: Piece) {
+  return piece.shape.flatMap((row, y) => row.flatMap((cell, x) =>
+    cell ? [{ x: piece.x + x, y: piece.y + y }] : [],
+  ))
+}
+
+function GameBoardArt({ game, started }: { game: Game; started: boolean }) {
+  const cells = (started ? game.board : idleBoard).map((row) => [...row])
+  let ghost: { x: number; y: number }[] = []
+  if (!game.over) {
+    ghost = pieceCells(landing(started ? game : { ...game, board: cells }))
+    for (const { x, y } of pieceCells(game.piece)) cells[y][x] = game.piece.color
+  }
+  const effect = game.lastLock
+
+  return (
+    <div className="board-grid" aria-hidden="true">
+      {cells.map((row, y) => row.map((color, x) => (
+        <span
+          key={`${y}-${x}`}
+          className="board-cell"
+          data-color={color || undefined}
+          data-ghost={!color && ghost.some((cell) => cell.x === x && cell.y === y) || undefined}
+        />
+      )))}
+      {effect && (
+        <div key={effect.id} className="board-effects">
+          {effect.impact && pieceCells(effect.impact).map(({ x, y }) => (
+            <i key={`${y}-${x}`} className="drop-impact" style={{ gridColumn: x + 1, gridRow: y + 1 }} />
+          ))}
+          {effect.rows.map((row) => <i key={row} className="clear-row" style={{ gridRow: row + 1 }} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PiecePreview({ piece }: { piece: Piece }) {
+  return (
+    <div className="next-piece" aria-hidden="true">
+      <div style={{ gridTemplateColumns: `repeat(${piece.shape[0].length}, var(--preview-cell))` }}>
+        {piece.shape.flat().map((cell, index) => (
+          <i key={index} className="board-cell" data-color={cell ? piece.color : undefined} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Leaderboard() {
+  const [scores, setScores] = useState<ScoreEntry[] | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let current = true
+    void getScores().then((result) => {
+      if (current) setScores(result)
+    }).catch(() => {
+      if (current) setFailed(true)
     })
-  })
+    return () => { current = false }
+  }, [])
+
+  if (failed) return <p className="leaderboard-message" role="status">Leaderboard is temporarily unavailable.</p>
+  if (!scores) return <p className="leaderboard-message" role="status">Loading scores…</p>
+  if (!scores.length) return <p className="leaderboard-message" role="status">No scores yet. Be the first!</p>
+
+  return (
+    <ol className="score-list">
+      {scores.map((entry, index) => (
+        <li key={`${entry.display_name}-${index}`}>
+          <span className="score-rank">{index + 1}.</span>
+          <span className="score-name">{entry.display_name}</span>
+          <strong>{entry.score.toLocaleString('en-US')}</strong>
+        </li>
+      ))}
+    </ol>
+  )
 }
 
 export default function BuildMode() {
   const content = siteContent.buildMode
   const [game, dispatch] = useReducer(gameReducer, undefined, () => createGame())
-  const [focused, setFocused] = useState(false)
   const [started, setStarted] = useState(false)
-  const [visible, setVisible] = useState(true)
-  const [scores, setScores] = useState<ScoreEntry[]>([])
-  const [leaderboardError, setLeaderboardError] = useState('')
+  const [running, setRunning] = useState(false)
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false)
+  const [scoreVersion, setScoreVersion] = useState(0)
   const [scoreFeedback, setScoreFeedback] = useState('')
   const [savingScore, setSavingScore] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const boardRef = useRef<HTMLDivElement>(null)
-  const scoreLoadId = useRef(0)
+  const pauseRef = useRef<HTMLButtonElement>(null)
+  const heldKeys = useRef<HeldKeys>({})
   const instructions = useId()
-  const active = focused && visible && !game.over
+  const active = running && !game.over
   const level = 1 + Math.floor(game.lines / 10)
 
   useEffect(() => {
-    const updateVisibility = () => setVisible(document.visibilityState === 'visible')
-    const hide = () => setVisible(false)
-    document.addEventListener('visibilitychange', updateVisibility)
-    window.addEventListener('blur', hide)
-    window.addEventListener('focus', updateVisibility)
-    return () => {
-      document.removeEventListener('visibilitychange', updateVisibility)
-      window.removeEventListener('blur', hide)
-      window.removeEventListener('focus', updateVisibility)
-    }
-  }, [])
-
-  useEffect(() => {
     if (!active) return
+    const held = heldKeys.current
+    const pause = () => {
+      for (const group of repeatGroups) stopRepeat(held, group)
+      setRunning(false)
+    }
+    const updateVisibility = () => { if (document.hidden) pause() }
     const interval = Math.max(120, 750 - (level - 1) * 65)
     const timer = window.setInterval(() => dispatch({ type: 'tick' }), interval)
-    return () => window.clearInterval(timer)
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) pause()
+    })
+    if (boardRef.current) observer.observe(boardRef.current)
+    document.addEventListener('visibilitychange', updateVisibility)
+    window.addEventListener('blur', pause)
+    return () => {
+      window.clearInterval(timer)
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', updateVisibility)
+      window.removeEventListener('blur', pause)
+    }
   }, [active, level])
 
   useEffect(() => {
-    let cancelled = false
-    const loadId = ++scoreLoadId.current
-    void getScores().then((result) => {
-      if (cancelled || loadId !== scoreLoadId.current) return
-      setScores(result)
-      setLeaderboardError('')
-    }).catch(() => {
-      if (!cancelled && loadId === scoreLoadId.current) {
-        setLeaderboardError('Leaderboard unavailable until Supabase is configured.')
-      }
-    })
-    return () => { cancelled = true }
-  }, [])
+    if (!active) return
+    const held = heldKeys.current
+    return () => { for (const group of repeatGroups) stopRepeat(held, group) }
+  }, [active])
+
+  function play(restart = false) {
+    if (!started || restart) {
+      dispatch({ type: 'reset', seed: crypto.getRandomValues(new Uint32Array(1))[0] })
+      setSubmitted(false)
+      setScoreFeedback('')
+    }
+    setStarted(true)
+    setRunning(true)
+    boardRef.current?.focus({ preventScroll: true })
+  }
+
+  function startRepeat(type: 'left' | 'right' | 'down', key: string) {
+    const held = heldKeys.current
+    const group = type === 'down' ? 'down' : 'horizontal'
+    stopRepeat(held, group)
+    const press = { key, timer: window.setTimeout(repeat, 110) }
+    held[group] = press
+
+    function repeat() {
+      dispatch({ type })
+      press.timer = window.setTimeout(repeat, type === 'down' ? 35 : 32)
+    }
+  }
 
   async function submitScore(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!game.over || submitted) return
-    const form = event.currentTarget
-    const data = Object.fromEntries(new FormData(form))
+    if (!game.over || submitted || savingScore) return
+    const data = Object.fromEntries(new FormData(event.currentTarget))
     setSavingScore(true)
     setScoreFeedback('')
     try {
@@ -82,133 +190,151 @@ export default function BuildMode() {
         body: JSON.stringify({ ...data, score: game.score }),
       })
       const result = await response.json()
-      if (!response.ok) throw new Error(result.error)
+      if (!response.ok) {
+        setScoreFeedback(result.error || 'Score could not be saved. Try again.')
+        return
+      }
       setSubmitted(true)
       setScoreFeedback('Score saved. Only your highest score appears.')
       invalidateScores()
-      const loadId = ++scoreLoadId.current
-      try {
-        const latest = await getScores()
-        if (loadId === scoreLoadId.current) {
-          setScores(latest)
-          setLeaderboardError('')
-        }
-      } catch {
-        if (loadId === scoreLoadId.current) setLeaderboardError('Leaderboard could not be refreshed.')
-      }
-    } catch (error) {
-      setScoreFeedback(error instanceof Error ? error.message : 'Score could not be saved.')
+      setScoreVersion((version) => version + 1)
+    } catch {
+      setScoreFeedback('Score could not be saved. Try again.')
     } finally {
       setSavingScore(false)
     }
   }
 
-  const cells = game.board.map((row) => [...row])
-  const ghost = new Set<number>()
-  if (!game.over) {
-    visitPieceCells(landing(game), (x, y) => ghost.add(y * WIDTH + x))
-    visitPieceCells(game.piece, (x, y) => { cells[y][x] = game.piece.color })
-  }
-
-  const handleRestart = () => {
-    dispatch({ type: 'reset', seed: Date.now() })
-    setSubmitted(false)
-    setScoreFeedback('')
-    boardRef.current?.focus({ preventScroll: true })
-  }
-  const status = game.over ? content.states.gameOver : started ? content.states.paused : content.states.ready
+  const status = game.over ? 'Game over' : active ? 'Playing' : started ? 'Paused' : 'Ready'
 
   return (
-    <div className="mt-6 w-full justify-self-center border border-[#a3ec68] bg-[#191a1e] p-[13px] shadow-[4px_4px_0_#a3ec68] md:mt-0 md:max-w-[405px] md:justify-self-end md:p-[15px] md:shadow-[6px_6px_0_#a3ec68] lg:p-[21px_22px_19px]">
-      <div className="mb-3 flex justify-between font-['DM_Mono'] text-[9px] tracking-[.14em] text-[#e8e8e5]">
-        <span>{content.title}</span>
-        <span className="text-[#91939c]">{content.levelLabel} {String(level).padStart(2, '0')}</span>
+    <section
+      id="build-mode"
+      className="game-cabinet"
+      tabIndex={-1}
+      aria-labelledby="build-mode-title"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget) || event.relatedTarget?.closest('.game-leaderboard')) {
+          setRunning(false)
+        }
+      }}
+    >
+      <header className="game-header">
+        <h2 id="build-mode-title">
+          <span className="cabinet-icon" aria-hidden="true"><i /><i /><i /><i /></span>
+          {content.title}
+        </h2>
+        <span className="game-status" data-playing={active} role="status"><i aria-hidden="true" />{status}</span>
+      </header>
+
+      <div className="game-console">
+        <div className="game-board-frame">
+          <div
+            className="game-board"
+            ref={boardRef}
+            tabIndex={active ? 0 : -1}
+            role="application"
+            aria-label={content.ariaLabel}
+            aria-describedby={instructions}
+            onPointerDown={() => { if (active) boardRef.current?.focus({ preventScroll: true }) }}
+            onBlur={() => { for (const group of repeatGroups) stopRepeat(heldKeys.current, group) }}
+            onKeyUp={(event) => {
+              for (const group of repeatGroups) {
+                if (heldKeys.current[group]?.key === (event.code || event.key)) stopRepeat(heldKeys.current, group)
+              }
+            }}
+            onKeyDown={(event) => {
+              if (!active || event.altKey || event.ctrlKey || event.metaKey) return
+              if (event.key === 'Escape' || event.key.toLowerCase() === 'p') {
+                event.preventDefault()
+                setRunning(false)
+                pauseRef.current?.focus({ preventScroll: true })
+                return
+              }
+              const type = keys[event.key.length === 1 ? event.key.toLowerCase() : event.key]
+              if (!type) return
+              event.preventDefault()
+              if (event.repeat) return
+              dispatch({ type })
+              if (type === 'left' || type === 'right' || type === 'down') startRepeat(type, event.code || event.key)
+            }}
+          >
+            <GameBoardArt game={game} started={started} />
+          </div>
+          <div className="game-overlay" hidden={active}>
+            <div className="game-overlay-content">
+              <p>{game.over ? 'Game over' : started ? 'Paused' : 'Ready to stack?'}</p>
+              {game.over && <p className="game-final-score">{game.score.toLocaleString('en-US')} points</p>}
+              <button type="button" className="game-start" disabled={savingScore} onClick={() => play(game.over)}>
+                <span className="play-icon" aria-hidden="true" />
+                {game.over ? 'Play again' : started ? 'Resume' : 'Play game'}
+              </button>
+              {started && !game.over && (
+                <button type="button" className="game-restart" onClick={() => play(true)}>Restart</button>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="game-sidebar">
+          <div className="game-stat">
+            <span>Next</span>
+            <PiecePreview piece={upcomingPiece(game)} />
+          </div>
+          <dl className="game-stats">
+            <div className="game-stat"><dt>Score</dt><dd>{game.score.toLocaleString('en-US')}</dd></div>
+            <div className="game-stat"><dt>Lines</dt><dd>{String(game.lines).padStart(2, '0')}</dd></div>
+            <div className="game-stat"><dt>Level</dt><dd>{String(level).padStart(2, '0')}</dd></div>
+          </dl>
+          {started && !game.over && (
+            <button ref={pauseRef} type="button" className="game-pause" onClick={() => active ? setRunning(false) : play()}>
+              {active ? 'Pause' : 'Resume'}
+            </button>
+          )}
+        </div>
       </div>
-      <div
-        ref={boardRef}
-        tabIndex={0}
-        role="application"
-        aria-label={content.ariaLabel}
-        aria-describedby={instructions}
-        onFocus={() => { setFocused(true); setStarted(true) }}
-        onBlur={() => setFocused(false)}
-        onPointerDown={() => boardRef.current?.focus({ preventScroll: true })}
-        onKeyDown={(event) => {
-          if (event.altKey || event.ctrlKey || event.metaKey) return
-          if (event.key === 'Escape') { event.currentTarget.blur(); return }
-          const key = event.key.length === 1 ? event.key.toLowerCase() : event.key
-          const type = keys[key]
-          if (!type) return
-          event.preventDefault()
-          if (!active || (event.repeat && (type === 'drop' || type === 'rotate'))) return
-          dispatch({ type } as Action)
-        }}
-        className="relative cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#4dd1dc] focus-visible:ring-offset-4 focus-visible:ring-offset-[#191a1e]"
-      >
-        <div className="grid grid-cols-10 gap-px" aria-hidden="true">
-          {cells.flat().map((color, index) => (
-            <span
-              key={index}
-              className={`aspect-square border ${color ? 'border-white/15' : ghost.has(index) ? 'border-[#a3ec68]/50' : 'border-[#24252a]'} ${colors[color]}`}
-            />
+
+      <div id={instructions} className="game-help">
+        <div className="key-legend" aria-hidden="true">
+          <span><kbd>←</kbd><kbd>→</kbd> Move</span>
+          <span><kbd>↑</kbd><kbd>Z</kbd> Rotate</span>
+          <span><kbd>↓</kbd> Soft drop</span>
+          <span><kbd>Space</kbd> Drop</span>
+          <span><kbd>Esc</kbd> Pause</span>
+        </div>
+        <span className="sr-only">Hold left or right arrows, A or D to move. Up arrow or W to rotate clockwise. Z to rotate counterclockwise. Hold down arrow or S to soft drop. Space to hard drop. Escape or P to pause.</span>
+        <div className="touch-controls" role="group" aria-label="Touch game controls">
+          {content.touchControls.map(({ action, label, ariaLabel }) => (
+            <button
+              key={action}
+              type="button"
+              aria-label={ariaLabel}
+              disabled={!active}
+              onClick={() => {
+                boardRef.current?.focus({ preventScroll: true })
+                dispatch({ type: action })
+              }}
+            >
+              {label}
+            </button>
           ))}
         </div>
-        {!active && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#101112]/75 px-4 text-center text-[#e8e8e5]">
-            <span className="font-['Press_Start_2P'] text-[11px] leading-6">{status}</span>
-            <span className="font-['DM_Mono'] text-[10px]">
-              {game.over ? `${game.lines} ${content.linesLabel} · ${game.score} ${content.pointsLabel}` : content.playPrompt}
-            </span>
-          </div>
-        )}
       </div>
-      <div className="mt-3 flex items-center justify-between font-['DM_Mono'] text-[9px] text-[#91939c]">
-        <span>{content.scoreLabel} {game.score}</span>
-        <span>{content.lineCountLabel} {game.lines}</span>
-        <button type="button" className="cursor-pointer border border-current px-2 py-1 text-[#e8e8e5] hover:text-[#4dd1dc]" onClick={handleRestart}>
-          {content.restartLabel}
-        </button>
-      </div>
-      <p id={instructions} className="mt-3 text-center font-['DM_Mono'] text-[9px] leading-5 text-[#91939c]">
-        {content.instructions.map((line, index) => (
-          <span key={line}>{line}{index < content.instructions.length - 1 && <br />}</span>
-        ))}
-      </p>
+
       {game.over && (
-        <form onSubmit={submitScore} className="mt-4 grid gap-2 border-t border-[#2a2b2f] pt-4 font-['DM_Mono'] text-[10px]">
-          <strong className="text-[#a3ec68]">SHARE YOUR SCORE</strong>
-          <p className="text-[#91939c]">Add your name and email to save this score. Scores without an email are not stored.</p>
-          <input required name="name" maxLength={40} placeholder="Name" aria-label="Leaderboard name" disabled={submitted} className="border border-[#2a2b2f] bg-[#101112] p-2 outline-none focus:border-[#4dd1dc]" />
-          <input required type="email" name="email" maxLength={254} placeholder="Email" aria-label="Leaderboard email" disabled={submitted} className="border border-[#2a2b2f] bg-[#101112] p-2 outline-none focus:border-[#4dd1dc]" />
-          <button disabled={savingScore || submitted} className="cursor-pointer bg-[#a3ec68] p-2 text-[#101112] disabled:cursor-default disabled:opacity-60">{savingScore ? 'SAVING...' : submitted ? 'SAVED' : 'SUBMIT SCORE'}</button>
-          <p role="status" aria-live="polite" className="text-[#4dd1dc]">{scoreFeedback}</p>
+        <form onSubmit={submitScore} className="score-form">
+          <strong>Share your score</strong>
+          <p>Your name appears on the leaderboard. Your email keeps your best score together and stays private.</p>
+          <label>Name<input required name="name" maxLength={40} autoComplete="name" disabled={submitted} /></label>
+          <label>Email<input required name="email" type="email" maxLength={254} autoComplete="email" disabled={submitted} /></label>
+          <button className="game-start" disabled={savingScore || submitted}>{savingScore ? 'Saving…' : submitted ? 'Saved' : 'Submit score'}</button>
+          <p role="status">{scoreFeedback}</p>
         </form>
       )}
-      <section aria-label="Tetris leaderboard" className="mt-4 border-t border-[#2a2b2f] pt-4 font-['DM_Mono'] text-[10px]">
-        <h3 className="mb-2 text-[#a3ec68]">TOP SCORES</h3>
-        {leaderboardError && <p className="text-[#91939c]">{leaderboardError}</p>}
-        {!leaderboardError && scores.length === 0 && <p className="text-[#91939c]">No scores yet. Be the first!</p>}
-        <ol className="grid gap-1">
-          {scores.map((entry, index) => (
-            <li key={`${entry.display_name}-${index}`} className="flex justify-between gap-2 border-b border-[#2a2b2f] py-1">
-              <span className="truncate">{index + 1}. {entry.display_name}</span><span>{entry.score}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-      <div className="mt-2 flex justify-center gap-2 md:hidden" aria-label={content.touchControlsLabel}>
-        {content.touchControls.map(({ action, label, ariaLabel }) => (
-          <button
-            key={action}
-            type="button"
-            aria-label={ariaLabel}
-            className="min-h-10 min-w-10 cursor-pointer border border-current px-2 font-['DM_Mono'] text-xs text-[#e8e8e5]"
-            onClick={() => { boardRef.current?.focus({ preventScroll: true }); dispatch({ type: action }) }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
+
+      <details className="game-leaderboard" onToggle={(event) => setLeaderboardOpen(event.currentTarget.open)}>
+        <summary>Leaderboard <span aria-hidden="true">↓</span></summary>
+        {leaderboardOpen && <Leaderboard key={scoreVersion} />}
+      </details>
+    </section>
   )
 }

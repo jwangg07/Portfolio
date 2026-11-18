@@ -1,9 +1,26 @@
 import type { Metadata } from 'next'
+import localFont from 'next/font/local'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { siteContent } from '@/content/site'
 import './globals.css'
 
+const spaceGrotesk = localFont({
+  src: './fonts/space-grotesk.woff2',
+  weight: '300 700',
+  display: 'swap',
+  variable: '--font-interface',
+})
+
+const dmMono = localFont({
+  src: './fonts/dm-mono.woff2',
+  weight: '400',
+  display: 'swap',
+  variable: '--font-metadata',
+  preload: false,
+})
+
+// oxlint-disable-next-line react/only-export-components -- Next.js reads metadata from its layout.
 export const metadata: Metadata = {
   title: siteContent.metadata.title,
   description: siteContent.metadata.description,
@@ -11,16 +28,13 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className="scroll-smooth">
-    <head>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
-    </head>
-    <body>
-      {children}
-      <Analytics />
-      <SpeedInsights />
-    </body>
-  </html>
+  return (
+    <html lang="en" className={`${spaceGrotesk.variable} ${dmMono.variable}`}>
+      <body id="top">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  )
 }

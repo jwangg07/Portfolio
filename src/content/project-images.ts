@@ -4,5 +4,6 @@ export const projectImages = {
   "findr": "/projects/optimized/findr.56cf0d928a14.webp",
   "ubcschedules": "/projects/optimized/ubcschedules.5e420c602bbf.webp",
   "notetakingapp": "/projects/optimized/notetakingapp.f35fb2bd17d3.webp",
-  "mailbuds": "/projects/optimized/mailbuds.b73dfe3d577b.webp"
+  "mailbuds": "/projects/optimized/mailbuds.b73dfe3d577b.webp",
+  "minimailroom": "/projects/optimized/minimailroom.bf13e21f4067.webp"
 } as const

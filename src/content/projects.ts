@@ -10,8 +10,8 @@ export const projects: PortfolioProject[] = [
     date: 'November 2026 – Present',
     description: 'A Gmail client growing into a cozy pixel-art mailroom, with Google sign-in, a paginated inbox, plain-text message reading, and email composition',
     stack: 'React, TypeScript, Python, FastAPI, Gmail API, AWS Lambda, DynamoDB',
-    imageSrc: '',
-    imageAlt: '',
+    imageSrc: projectImages.minimailroom,
+    imageAlt: 'Pixel-art mailroom at night with a mail carrier and a robot sorting letters',
     githubUrl: 'https://github.com/jwangg07/Mini-Mailroom',
     devpostUrl: '',
     projectUrl: ''
